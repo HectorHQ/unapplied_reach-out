@@ -319,6 +319,7 @@ def sameday_paperwork_data(data):
     customer_total_ua['AR_Rep'] = customer_total_ua['Customer_Name'].map(ar_rep_dict)
     customer_total_ua['uuid'] = customer_total_ua['Customer_Name'].map(uuid_dict)
     customer_total_ua['assign_id'] = customer_total_ua['AR_Rep'].map(front_teammate_id)
+    customer_total_ua['Payment_reference'] = [df_gpd.loc[df_gpd['Customer_Name']==x, ['Payment Ref']] for x in customer_total_ua['Customer_Name']]
 
 
 
