@@ -306,7 +306,7 @@ def sameday_paperwork_data(data):
 
     # Filtering out Toggle ON & 100 threshold
     
-    df_gpd = df_gpd.loc[df_gpd['Toggle']=='ON'].copy()
+    #df_gpd = df_gpd.loc[df_gpd['Toggle']=='ON'].copy()
 
     # Creating final df using groupby
     customer_total_ua = df_gpd.groupby('Customer_Name').agg({'Amount':'sum'}).reset_index()
