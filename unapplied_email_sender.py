@@ -5,13 +5,14 @@ import numpy as np
 import streamlit as st
 import requests
 import datetime as dt
+import json
 pd.options.display.float_format = "{:,.2f}".format
 
 
 st.set_page_config('Unapplied Reachout',page_icon=':e-mail:',layout='wide')
 st.title(':red[Email] Reachout Unapplied :e-mail:')
 
-uncategorized_Report = st.file_uploader('Upload Uncategorized asset Report',accept_multiple_files=False)
+reports = st.file_uploader('Upload Uncategorized asset Report',accept_multiple_files=True)
 
 
 # Google sheets ids Uncategorized report
@@ -81,7 +82,7 @@ def update_gs_byID(gs_ID,df_values,sheet_name,range_to_update):
     worksheet.update([data.columns.values.tolist()] + data.values.tolist())
 
 
-def paperwork_data(data):
+def paperwork_data(data,data_aging):
         
     update_gs_byID(st.secrets['gs_ID']['uncategorized'],data,sheet_name='1490_Uncategorized',range_to_update='A1:Q')
 
@@ -169,6 +170,7 @@ def paperwork_data(data):
     contacts_dict = dict(zip(df_conctacts['name'],df_conctacts['DB Email']))
     uuid_dict = dict(zip(df_conctacts['name'],df_conctacts['id']))
     toggle_dict = dict(zip(df_conctacts['name'],df_conctacts['Toggle']))
+    
     # Mapping the emails to the dataframe
     df_gpd['contact_email'] = df_gpd['Customer_Name'].map(contacts_dict)
     df_gpd['Toggle'] = df_gpd['Customer_Name'].map(toggle_dict)
@@ -178,26 +180,34 @@ def paperwork_data(data):
     # Filtering out Toggle ON
 
     df_gpd = df_gpd.loc[df_gpd['Toggle']=='ON'].copy()
+    df_gpd['Payment_Date'] = pd.to_datetime(df_gpd['Payment_Date'])
+    df_gpd.sort_values(by=['Payment_Date'],inplace=True,ascending=False)
+    df_gpd.rename(columns={'Amount':'Unapplied Amount'},inplace=True)
+    df_gpd['Unapplied Amount'] = abs(df_gpd['Unapplied Amount'])
 
     # Creating final df using groupby
-    customer_total_ua = df_gpd.groupby('Customer_Name').agg({'Amount':'sum'}).reset_index()
+    customer_total_ua = df_gpd.groupby('Customer_Name').agg({'Unapplied Amount':'sum'}).reset_index()
     # List comprehension to get the data from each retailer
-    details_account = [df_gpd.loc[df_gpd['Customer_Name']==x, ['Payment Ref','Payment_Date','Amount','Original Pmt Amount','Issue Reason','Payment Type']].to_html(index=False, header=True) for x in customer_total_ua['Customer_Name']]
+    details_account = [df_gpd.loc[df_gpd['Customer_Name']==x, ['Payment Ref','Payment_Date','Unapplied Amount','Original Pmt Amount','Issue Reason','Payment Type']].to_html(index=False, header=True ,justify='justify') for x in customer_total_ua['Customer_Name']]
     # Creating columns
     customer_total_ua['details'] = details_account
     customer_total_ua['Contact_email'] = customer_total_ua['Customer_Name'].map(contacts_dict)
-    customer_total_ua.rename(columns={'Amount':'Unapplied Amount'},inplace=True)
-    customer_total_ua['Unapplied Amount'] = customer_total_ua['Unapplied Amount'].abs().round(2)
-    
+    customer_total_ua['Unapplied Amount'] = customer_total_ua['Unapplied Amount'].round(2)
     customer_total_ua['AR_Rep'] = customer_total_ua['Customer_Name'].map(ar_rep_dict)
     customer_total_ua['uuid'] = customer_total_ua['Customer_Name'].map(uuid_dict)
     customer_total_ua['assign_id'] = customer_total_ua['AR_Rep'].map(front_teammate_id)
-
-
+    
+    
 
     # Loading the data into the Google sheets that Make will read
     update_gs_byID(st.secrets['gs_ID']['uncategorized'],customer_total_ua,sheet_name='UA_email_reachout_data',range_to_update='A1:N')
 
+    data_aging_filter = data_aging[['Overdue','Delivery Date','Order Number','Due','Subtotal','Tax','Retailer UUID','Collected','Dispensary']].copy()
+    data_aging_filter.rename(columns={'Due':'Amount Due','Collected':'Total Collected'},inplace=True)
+    data_aging_filter = data_aging_filter.loc[data_aging_filter['Retailer UUID'].isin(customer_total_ua['uuid'])].copy()
+    data_aging_filter['Total Invoice'] = (data_aging_filter['Subtotal'] + data_aging_filter['Tax']).round(2)
+    data_aging_filter = data_aging_filter[['Overdue','Delivery Date','Order Number','Amount Due','Total Invoice','Retailer UUID','Total Collected','Dispensary']].copy()
+    update_gs_byID(st.secrets['gs_ID']['uncategorized'],data_aging_filter,sheet_name='aging_nabis',range_to_update='A1:H')
 
 
 
@@ -306,7 +316,9 @@ def sameday_paperwork_data(data):
 
     # Filtering out Toggle ON & 100 threshold
     
-    #df_gpd = df_gpd.loc[df_gpd['Toggle']=='ON'].copy()
+    # df_gpd = df_gpd.loc[df_gpd['Toggle']=='ON'].copy()
+    df_gpd['Payment_Date'] = pd.to_datetime(df_gpd['Payment_Date'])
+    df_gpd.sort_values(by=['Payment_Date'],inplace=True)
 
     # Creating final df using groupby
     customer_total_ua = df_gpd.groupby('Customer_Name').agg({'Amount':'sum'}).reset_index()
@@ -315,14 +327,12 @@ def sameday_paperwork_data(data):
     # Creating columns
     customer_total_ua['details'] = details_account
     customer_total_ua['Contact_email'] = customer_total_ua['Customer_Name'].map(contacts_dict)
+    customer_total_ua['Amount'] = customer_total_ua['Amount'].round(2)
     customer_total_ua.rename(columns={'Amount':'Unapplied Amount'},inplace=True)
-    customer_total_ua['Unapplied Amount'] = customer_total_ua['Unapplied Amount'].abs().round(2)
-    
     customer_total_ua['AR_Rep'] = customer_total_ua['Customer_Name'].map(ar_rep_dict)
     customer_total_ua['uuid'] = customer_total_ua['Customer_Name'].map(uuid_dict)
     customer_total_ua['assign_id'] = customer_total_ua['AR_Rep'].map(front_teammate_id)
     customer_total_ua['Payment_reference'] = [df_gpd.loc[df_gpd['Customer_Name']==x, ['Payment Ref']] for x in customer_total_ua['Customer_Name']]
-
 
 
     # Loading the data into the Google sheets that Make will read
@@ -331,13 +341,62 @@ def sameday_paperwork_data(data):
 
 
 
-if uncategorized_Report:
+def get_dataframe_name(file):
+    """
+    Generates a name for the DataFrame based on the file name.
+    """
+    
+    file_name = file.name.split(".")[0][:8]  # Get the file name without extension
+    df_name = file_name.replace(" ", "_")  # Remove spaces and replace with underscores
+    return df_name
+
+def load_dataframe(file):
+    """
+    Loads the uploaded file into a Pandas DataFrame.
+    """
     columns = ['Date',	'Transaction Type',	'Num',	'Name',	'Memo/Description',	'Account',	'Split',	'Amount',	'Balance',	'Created By',	'Last Modified By',	'Customer',	'A/R Paid',	'Class',	'Last Modified',	'Location',	'Create Date']
-    data = pd.read_excel(uncategorized_Report,usecols=columns,skipfooter=1)
+    file_extension = file.name.split(".")[-1]
+    df_name = get_dataframe_name(file)
+
+    if file_extension == "csv" and df_name == 'Nabifive':
+        df = pd.read_csv(file,usecols=columns,skipfooter=1)
+        
+    elif file_extension == "xlsx" and df_name == 'Nabifive':
+        df = pd.read_excel(file,usecols=columns,skipfooter=1)
+
+    elif file_extension == "csv":
+        df = pd.read_csv(file)
+
+    elif file_extension == "xlsx":
+        df = pd.read_excel(file)
+
+    return df
 
 
-    if st.button('Click to Send Emails'):
-      paperwork_data(data)
+
+
+
+if reports:
+
+    # Create a dictionary to store dataframes
+    dataframes = {}
+
+
+    # Iterate through each uploaded file
+    for file in reports:
+        df_name = get_dataframe_name(file)
+        df = load_dataframe(file)
+        dataframes[df_name] = df
+
+    data_uncategorized = dataframes['Nabifive']
+
+    data_aging = dataframes['nabione-']
+
+
+    if st.button('Consolidated weekly Emails'):
+      aging_nabis = paperwork_data(data_uncategorized,data_aging)
+      aging_webhook = 'https://hook.us1.make.com/spbz18uav6rjjqjcqchjiyg8gradoift'
+      response = requests.post(aging_webhook)
       webhook = 'https://hook.us1.make.com/nlu4n0q2xvpbrr9fblw9mf4c4d7y8372'
       response = requests.post(webhook)
 
@@ -348,7 +407,7 @@ if uncategorized_Report:
 
 
     if st.button('Same-Day Emails'):
-        sameday_paperwork_data(data)
+        sameday_paperwork_data(data_uncategorized)
         webhook_sameday = 'https://hook.us1.make.com/tsvqwj3idc30c317uodkze02y3mwf25d'
         response_sameday = requests.post(webhook_sameday)
 
@@ -358,9 +417,4 @@ if uncategorized_Report:
             st.error(f"Failed to call webhook. Status Code: {response_sameday.status_code}")
 
 
-left_col,center_col,right_col = st.columns(3)
-
-with center_col:
-    st.title('**Powered by HQ**')
-    st.image('https://www.dropbox.com/s/twrl9exjs8piv7t/Headquarters%20transparent%20light%20logo.png?dl=1')
 
