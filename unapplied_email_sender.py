@@ -413,32 +413,33 @@ if reports:
 
     if comparisson_total == 0.0:
         st.success(f'There is not variance on GL account, you can continue')
+        if st.button('Consolidated weekly Emails'):
+          aging_nabis = paperwork_data(data_uncategorized,data_aging)
+          aging_webhook = 'https://hook.us1.make.com/spbz18uav6rjjqjcqchjiyg8gradoift'
+          response = requests.post(aging_webhook)
+          webhook = 'https://hook.us1.make.com/nlu4n0q2xvpbrr9fblw9mf4c4d7y8372'
+          response = requests.post(webhook)
+    
+          if response.status_code == 200:
+                st.success("Make Automation Running")
+          else:
+                st.error(f"Failed to call webhook. Status Code: {response.status_code}")
+    
+    
+        if st.button('Same-Day Emails'):
+            sameday_paperwork_data(data_uncategorized)
+            webhook_sameday = 'https://hook.us1.make.com/tsvqwj3idc30c317uodkze02y3mwf25d'
+            response_sameday = requests.post(webhook_sameday)
+    
+            if response_sameday.status_code == 200:
+                st.success("Make Automation Running")
+            else:
+                st.error(f"Failed to call webhook. Status Code: {response_sameday.status_code}")
     else:
         st.warning(f'There is a variance of {comparisson_total[0]:,.0f}, Please review the unapplied report.')
 
 
-    if st.button('Consolidated weekly Emails'):
-      aging_nabis = paperwork_data(data_uncategorized,data_aging)
-      aging_webhook = 'https://hook.us1.make.com/spbz18uav6rjjqjcqchjiyg8gradoift'
-      response = requests.post(aging_webhook)
-      webhook = 'https://hook.us1.make.com/nlu4n0q2xvpbrr9fblw9mf4c4d7y8372'
-      response = requests.post(webhook)
-
-      if response.status_code == 200:
-            st.success("Make Automation Running")
-      else:
-            st.error(f"Failed to call webhook. Status Code: {response.status_code}")
-
-
-    if st.button('Same-Day Emails'):
-        sameday_paperwork_data(data_uncategorized)
-        webhook_sameday = 'https://hook.us1.make.com/tsvqwj3idc30c317uodkze02y3mwf25d'
-        response_sameday = requests.post(webhook_sameday)
-
-        if response_sameday.status_code == 200:
-            st.success("Make Automation Running")
-        else:
-            st.error(f"Failed to call webhook. Status Code: {response_sameday.status_code}")
+    
 
 
 
