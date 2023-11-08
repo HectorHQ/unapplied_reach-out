@@ -391,6 +391,30 @@ if reports:
     data_uncategorized = dataframes['Nabifive']
 
     data_aging = dataframes['nabione-']
+    
+    data_uncategorized['Amount'] = pd.to_numeric(data_uncategorized['Amount'])
+    GL_total = data_uncategorized['Amount'].sum().round(2)
+    OP_unapplied = data_uncategorized.groupby('Class').agg({'Amount':'sum'}).reset_index()
+    op_unaaplied_total = OP_unapplied[OP_unapplied['Class']=='OP - Unapplied']
+    op_unaaplied_total_amt = op_unaaplied_total['Amount'].values
+    op_unaaplied_total_amt = op_unaaplied_total_amt
+
+    comparisson_total = (GL_total - op_unaaplied_total_amt).round(2)
+
+    gl,op_unapplied = st.columns(2)
+
+    with gl:
+        st.metric('GL Total Balance',value=f'{GL_total:,.2f}')
+
+    with op_unapplied:
+        st.metric('OP Unapplied total', value=f'{op_unaaplied_total_amt[0]:,.2f}')
+
+    
+
+    if comparisson_total == 0.0:
+        st.success(f'There is not variance on GL account, you can continue')
+    else:
+        st.warning(f'There is a variance of {comparisson_total[0]:,.0f}, Please review the unapplied report.')
 
 
     if st.button('Consolidated weekly Emails'):
