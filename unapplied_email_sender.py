@@ -319,11 +319,13 @@ def sameday_paperwork_data(data):
     # df_gpd = df_gpd.loc[df_gpd['Toggle']=='ON'].copy()
     df_gpd['Payment_Date'] = pd.to_datetime(df_gpd['Payment_Date'])
     df_gpd.sort_values(by=['Payment_Date'],inplace=True)
+    df_gpd.rename(columns={'Amount':'Unapplied Amount'},inplace=True)
+    df_gpd['Unapplied Amount'] = abs(df_gpd['Unapplied Amount'])
 
     # Creating final df using groupby
-    customer_total_ua = df_gpd.groupby('Customer_Name').agg({'Amount':'sum'}).reset_index()
+    customer_total_ua = df_gpd.groupby('Customer_Name').agg({'Unapplied Amount':'sum'}).reset_index()
     # List comprehension to get the data from each retailer
-    details_account = [df_gpd.loc[df_gpd['Customer_Name']==x, ['Payment Ref','Payment_Date','Amount','Original Pmt Amount','Issue Reason','Payment Type']].to_html(index=False, header=True) for x in customer_total_ua['Customer_Name']]
+    details_account = [df_gpd.loc[df_gpd['Customer_Name']==x, ['Payment Ref','Payment_Date','Unapplied Amount','Original Pmt Amount','Issue Reason','Payment Type']].to_html(index=False, header=True) for x in customer_total_ua['Customer_Name']]
     # Creating columns
     customer_total_ua['details'] = details_account
     customer_total_ua['Contact_email'] = customer_total_ua['Customer_Name'].map(contacts_dict)
@@ -413,28 +415,32 @@ if reports:
 
     if comparisson_total == 0.0:
         st.success(f'There is not variance on GL account, you can continue')
-        if st.button('Consolidated weekly Emails'):
-          aging_nabis = paperwork_data(data_uncategorized,data_aging)
-          aging_webhook = 'https://hook.us1.make.com/spbz18uav6rjjqjcqchjiyg8gradoift'
-          response = requests.post(aging_webhook)
-          webhook = 'https://hook.us1.make.com/nlu4n0q2xvpbrr9fblw9mf4c4d7y8372'
-          response = requests.post(webhook)
-    
-          if response.status_code == 200:
-                st.success("Make Automation Running")
-          else:
-                st.error(f"Failed to call webhook. Status Code: {response.status_code}")
-    
-    
-        if st.button('Same-Day Emails'):
-            sameday_paperwork_data(data_uncategorized)
-            webhook_sameday = 'https://hook.us1.make.com/tsvqwj3idc30c317uodkze02y3mwf25d'
-            response_sameday = requests.post(webhook_sameday)
-    
-            if response_sameday.status_code == 200:
-                st.success("Make Automation Running")
-            else:
-                st.error(f"Failed to call webhook. Status Code: {response_sameday.status_code}")
+        st.write('What kind of emails are you sendind?')
+        consolidated = st.toggle('Consolidated')
+        same_day = st.toggle('Same-day')
+        if consolidated:
+            if st.button('Consolidated weekly Emails'):
+              aging_nabis = paperwork_data(data_uncategorized,data_aging)
+              aging_webhook = 'https://hook.us1.make.com/spbz18uav6rjjqjcqchjiyg8gradoift'
+              response = requests.post(aging_webhook)
+              webhook = 'https://hook.us1.make.com/nlu4n0q2xvpbrr9fblw9mf4c4d7y8372'
+              response = requests.post(webhook)
+        
+              if response.status_code == 200:
+                    st.success("Make Automation Running")
+              else:
+                    st.error(f"Failed to call webhook. Status Code: {response.status_code}")
+        
+        if same_day:
+            if st.button('Same-Day Emails'):
+                sameday_paperwork_data(data_uncategorized)
+                webhook_sameday = 'https://hook.us1.make.com/tsvqwj3idc30c317uodkze02y3mwf25d'
+                response_sameday = requests.post(webhook_sameday)
+        
+                if response_sameday.status_code == 200:
+                    st.success("Make Automation Running")
+                else:
+                    st.error(f"Failed to call webhook. Status Code: {response_sameday.status_code}")
     else:
         st.warning(f'There is a variance of {comparisson_total[0]:,.0f}, Please review the unapplied report.')
 
