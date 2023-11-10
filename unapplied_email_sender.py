@@ -415,7 +415,7 @@ if reports:
 
     if comparisson_total == 0.0:
         st.success(f'There is not variance on GL account, you can continue')
-        st.write('What kind of emails are you sendind?')
+        st.write('What kind of emails are you sending?')
         consolidated = st.toggle('Consolidated')
         same_day = st.toggle('Same-day')
         if consolidated:
