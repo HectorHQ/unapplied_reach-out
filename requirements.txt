@@ -102,7 +102,7 @@ soupsieve==2.5
 stack-data==0.6.2
 statsmodels==0.13.5
 stone==3.3.1
-streamlit==1.21.0
+streamlit==1.28.1
 stripe==6.1.0
 tenacity==8.2.2
 toml==0.10.2
