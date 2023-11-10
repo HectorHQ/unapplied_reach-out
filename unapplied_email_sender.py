@@ -420,18 +420,18 @@ if reports:
         same_day = st.toggle('Same-day')
         if consolidated:
             if st.button('Consolidated weekly Emails'):
-              aging_nabis = paperwork_data(data_uncategorized,data_aging)
-              aging_webhook = 'https://hook.us1.make.com/spbz18uav6rjjqjcqchjiyg8gradoift'
-              response = requests.post(aging_webhook)
-              webhook = 'https://hook.us1.make.com/nlu4n0q2xvpbrr9fblw9mf4c4d7y8372'
-              response = requests.post(webhook)
-        
-              if response.status_code == 200:
-                    st.success("Make Automation Running")
-              else:
-                    st.error(f"Failed to call webhook. Status Code: {response.status_code}")
-        
-        if same_day:
+                aging_nabis = paperwork_data(data_uncategorized,data_aging)
+                aging_webhook = 'https://hook.us1.make.com/spbz18uav6rjjqjcqchjiyg8gradoift'
+                response = requests.post(aging_webhook)
+                webhook = 'https://hook.us1.make.com/nlu4n0q2xvpbrr9fblw9mf4c4d7y8372'
+                response = requests.post(webhook)
+            
+                if response.status_code == 200:
+                      st.success("Make Automation Running")
+                else:
+                      st.error(f"Failed to call webhook. Status Code: {response.status_code}")
+            
+        elif same_day:
             if st.button('Same-Day Emails'):
                 sameday_paperwork_data(data_uncategorized)
                 webhook_sameday = 'https://hook.us1.make.com/tsvqwj3idc30c317uodkze02y3mwf25d'
