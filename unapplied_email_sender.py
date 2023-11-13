@@ -420,7 +420,7 @@ if reports:
         same_day = st.toggle('Same-day')
         if consolidated:
             if st.button('Consolidated weekly Emails'):
-                aging_nabis = paperwork_data(data_uncategorized,data_aging)
+                paperwork_data(data_uncategorized,data_aging)
                 aging_webhook = 'https://hook.us1.make.com/spbz18uav6rjjqjcqchjiyg8gradoift'
                 response = requests.post(aging_webhook)
                 webhook = 'https://hook.us1.make.com/nlu4n0q2xvpbrr9fblw9mf4c4d7y8372'
