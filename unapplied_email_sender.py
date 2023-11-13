@@ -204,7 +204,7 @@ def paperwork_data(data,data_aging):
 
     data_aging_filter = data_aging[['Overdue','Delivery Date','Order Number','Due','Subtotal','Tax','Retailer UUID','Collected','Dispensary']].copy()
     data_aging_filter.rename(columns={'Due':'Amount Due','Collected':'Total Collected'},inplace=True)
-    data_aging_filter = data_aging_filter.loc[data_aging_filter['Retailer UUID'].isin(customer_total_ua['uuid'])].copy()
+    #data_aging_filter = data_aging_filter.loc[data_aging_filter['Retailer UUID'].isin(customer_total_ua['uuid'])].copy()
     data_aging_filter['Total Invoice'] = (data_aging_filter['Subtotal'] + data_aging_filter['Tax']).round(2)
     data_aging_filter = data_aging_filter[['Overdue','Delivery Date','Order Number','Amount Due','Total Invoice','Retailer UUID','Total Collected','Dispensary']].copy()
     update_gs_byID(st.secrets['gs_ID']['uncategorized'],data_aging_filter,sheet_name='aging_nabis',range_to_update='A1:H')
@@ -425,6 +425,8 @@ if reports:
                 response = requests.post(aging_webhook)
                 webhook = 'https://hook.us1.make.com/nlu4n0q2xvpbrr9fblw9mf4c4d7y8372'
                 response = requests.post(webhook)
+                overdue_webhook = 'https://hook.us1.make.com/sh7wnye6qqc8g6e2onzt0kgs9iz6n8t9'
+                response = requests.post(overdue_webhook)
             
                 if response.status_code == 200:
                       st.success("Make Automation Running")
