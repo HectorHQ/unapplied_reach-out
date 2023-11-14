@@ -209,6 +209,13 @@ def paperwork_data(data,data_aging):
     data_aging_filter = data_aging_filter[['Overdue','Delivery Date','Order Number','Amount Due','Total Invoice','Retailer UUID','Total Collected','Dispensary']].copy()
     update_gs_byID(st.secrets['gs_ID']['uncategorized'],data_aging_filter,sheet_name='aging_nabis',range_to_update='A1:H')
 
+    overdue_ar = data_aging_filter.loc[~data_aging_filter['Retailer UUID'].isin(customer_total_ua['uuid'])].copy()
+    overdue_ar_retailers = set(overdue_ar['Retailer UUID'])
+    overdue_retailers_list = list(overdue_ar_retailers)
+    data_json = json.dumps(overdue_retailers_list)
+
+    return data_json
+
 
 
 def sameday_paperwork_data(data):
@@ -420,13 +427,13 @@ if reports:
         same_day = st.toggle('Same-day')
         if consolidated:
             if st.button('Consolidated weekly Emails'):
-                paperwork_data(data_uncategorized,data_aging)
+                data_json = paperwork_data(data_uncategorized,data_aging)               
                 aging_webhook = 'https://hook.us1.make.com/spbz18uav6rjjqjcqchjiyg8gradoift'
                 response = requests.post(aging_webhook)
                 webhook = 'https://hook.us1.make.com/nlu4n0q2xvpbrr9fblw9mf4c4d7y8372'
                 response = requests.post(webhook)
                 overdue_webhook = 'https://hook.us1.make.com/sh7wnye6qqc8g6e2onzt0kgs9iz6n8t9'
-                response = requests.post(overdue_webhook)
+                response = requests.post(overdue_webhook,data=data_json,headers={'Content-Type': 'application/json'})
             
                 if response.status_code == 200:
                       st.success("Make Automation Running")
