@@ -211,7 +211,7 @@ def paperwork_data(data,data_aging):
 
     overdue_ar = data_aging_filter.loc[~data_aging_filter['Retailer UUID'].isin(customer_total_ua['uuid'])].copy()
     overdue_ar_retailers = set(overdue_ar['Retailer UUID'])
-    overdue_retailers_list = list(overdue_ar_retailers)
+    overdue_retailers_list = {'uuid':list(overdue_ar_retailers)}
     data_json = json.dumps(overdue_retailers_list)
 
     return data_json
