@@ -170,6 +170,7 @@ def paperwork_data(data,data_aging):
     contacts_dict = dict(zip(df_conctacts['name'],df_conctacts['DB Email']))
     uuid_dict = dict(zip(df_conctacts['name'],df_conctacts['id']))
     toggle_dict = dict(zip(df_conctacts['name'],df_conctacts['Toggle']))
+    toggle_dict_overdue = dict(zip(df_conctacts['id'],df_conctacts['Toggle']))
     
     # Mapping the emails to the dataframe
     df_gpd['contact_email'] = df_gpd['Customer_Name'].map(contacts_dict)
@@ -210,6 +211,8 @@ def paperwork_data(data,data_aging):
     update_gs_byID(st.secrets['gs_ID']['uncategorized'],data_aging_filter,sheet_name='aging_nabis',range_to_update='A1:H')
 
     overdue_ar = data_aging_filter.loc[~data_aging_filter['Retailer UUID'].isin(customer_total_ua['uuid'])].copy()
+    overdue_ar['Toggle'] = overdue_ar['Retailer UUID'].map(toggle_dict_overdue)
+    overdue_ar = overdue_ar.loc[overdue_ar['Toggle'] == 'ON'].copy()
     overdue_ar_retailers = set(overdue_ar['Retailer UUID'])
     overdue_retailers_list = {'uuid':list(overdue_ar_retailers)}
     data_json = json.dumps(overdue_retailers_list)
