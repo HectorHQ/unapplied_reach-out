@@ -203,11 +203,11 @@ def paperwork_data(data,data_aging):
     # Loading the data into the Google sheets that Make will read
     update_gs_byID(st.secrets['gs_ID']['uncategorized'],customer_total_ua,sheet_name='UA_email_reachout_data',range_to_update='A1:N')
 
-    data_aging_filter = data_aging[['Overdue','Delivery Date','Order Number','Due','Subtotal','Tax','Retailer UUID','Collected','Dispensary']].copy()
-    data_aging_filter.rename(columns={'Due':'Amount Due','Collected':'Total Collected'},inplace=True)
+    data_aging_filter = data_aging[['Overdue','Delivery Date','Order Number','Due','Subtotal','Tax','Retailer UUID','Collected','Dispensary','Org Name']].copy()
+    data_aging_filter.rename(columns={'Due':'Amount Due','Collected':'Total Collected','Org Name':'Brand'},inplace=True)
     #data_aging_filter = data_aging_filter.loc[data_aging_filter['Retailer UUID'].isin(customer_total_ua['uuid'])].copy()
     data_aging_filter['Total Invoice'] = (data_aging_filter['Subtotal'] + data_aging_filter['Tax']).round(2)
-    data_aging_filter = data_aging_filter[['Overdue','Delivery Date','Order Number','Amount Due','Total Invoice','Retailer UUID','Total Collected','Dispensary']].copy()
+    data_aging_filter = data_aging_filter[['Overdue','Delivery Date','Order Number','Amount Due','Total Invoice','Retailer UUID','Total Collected','Dispensary','Brand']].copy()
     update_gs_byID(st.secrets['gs_ID']['uncategorized'],data_aging_filter,sheet_name='aging_nabis',range_to_update='A1:H')
 
     overdue_ar = data_aging_filter.loc[~data_aging_filter['Retailer UUID'].isin(customer_total_ua['uuid'])].copy()
