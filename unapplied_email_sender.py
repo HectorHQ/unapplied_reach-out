@@ -281,19 +281,13 @@ def sameday_paperwork_data(data):
     df = df.loc[df['Class']=='OP - Unapplied'].copy()
     df = df.loc[df['Location'].isin(reasons)].copy()
     df['Create Date'] = df['Create Date'].apply(lambda x: pd.to_datetime(x)).dt.date
-    st.markdown('---')
-    df
-    
-    #df = df.loc[df['Create Date']== dt.date.today()].copy()
-    date_1 = dt.date.today() - pd.Timedelta(days=1)
-    date_1
-    df = df.loc[df['Create Date']== date_1].copy()
+      
+    df = df.loc[df['Create Date']== dt.date.today()].copy()
     # Cleaning data and converting to number
     df['Amount'] = df['Amount'].apply(lambda x: x.replace(',',''))
     df['Amount'] = pd.to_numeric(df['Amount'])
     df = df.loc[abs(df['Amount']) > 100 ].copy()
-    st.markdown('---')
-    df
+    
         
     # Creating new column payment type
     df['Payment Type'] = np.where(df['Num'].str.contains('Cash'),'Cash',np.where(df['Num'].str.contains('EFT'),'EFT','Check'))
@@ -353,7 +347,7 @@ def sameday_paperwork_data(data):
     customer_total_ua['uuid'] = customer_total_ua['Customer_Name'].map(uuid_dict)
     customer_total_ua['assign_id'] = customer_total_ua['AR_Rep'].map(front_teammate_id)
     customer_total_ua['Payment_reference'] = [df_gpd.loc[df_gpd['Customer_Name']==x, ['Payment Ref']] for x in customer_total_ua['Customer_Name']]
-    customer_total_ua
+    
 
     # Loading the data into the Google sheets that Make will read
     update_gs_byID(st.secrets['gs_ID']['uncategorized'],customer_total_ua,sheet_name='UA_email_reachout_data',range_to_update='A1:N')
