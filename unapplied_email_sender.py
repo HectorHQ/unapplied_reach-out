@@ -280,12 +280,16 @@ def sameday_paperwork_data(data):
     df = df.loc[df['Class']=='OP - Unapplied'].copy()
     df = df.loc[df['Location'].isin(reasons)].copy()
     df['Create Date'] = df['Create Date'].apply(lambda x: pd.to_datetime(x)).dt.date
+    st.markdown('---)
+    df
+    
     df = df.loc[df['Create Date']== dt.date.today()].copy()
     # Cleaning data and converting to number
     df['Amount'] = df['Amount'].apply(lambda x: x.replace(',',''))
     df['Amount'] = pd.to_numeric(df['Amount'])
     df = df.loc[abs(df['Amount']) > 100 ].copy()
-
+    st.markdown('---)
+    df
         
     # Creating new column payment type
     df['Payment Type'] = np.where(df['Num'].str.contains('Cash'),'Cash',np.where(df['Num'].str.contains('EFT'),'EFT','Check'))
