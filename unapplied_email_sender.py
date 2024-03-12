@@ -345,7 +345,7 @@ def sameday_paperwork_data(data):
     customer_total_ua['uuid'] = customer_total_ua['Customer_Name'].map(uuid_dict)
     customer_total_ua['assign_id'] = customer_total_ua['AR_Rep'].map(front_teammate_id)
     customer_total_ua['Payment_reference'] = [df_gpd.loc[df_gpd['Customer_Name']==x, ['Payment Ref']] for x in customer_total_ua['Customer_Name']]
-
+    customer_total_ua
 
     # Loading the data into the Google sheets that Make will read
     update_gs_byID(st.secrets['gs_ID']['uncategorized'],customer_total_ua,sheet_name='UA_email_reachout_data',range_to_update='A1:N')
