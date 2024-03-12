@@ -283,7 +283,8 @@ def sameday_paperwork_data(data):
     st.markdown('---')
     df
     
-    df = df.loc[df['Create Date']== dt.date.today()].copy()
+    #df = df.loc[df['Create Date']== dt.date.today()].copy()
+    df = df.loc[df['Create Date']== '03/11/2024'].copy()
     # Cleaning data and converting to number
     df['Amount'] = df['Amount'].apply(lambda x: x.replace(',',''))
     df['Amount'] = pd.to_numeric(df['Amount'])
