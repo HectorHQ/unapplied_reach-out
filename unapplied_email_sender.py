@@ -39,7 +39,8 @@ front_teammate_id = {'justin@nabis.com':'tea_2c5aj',
 'gabrielle.maschke@nabis.com':'tea_31n2j',
 'nela.eric@nabis.com':'tea_3dd8r',
 'liliana.bravo@nabis.com':'tea_3b7bf',
-'stephany.martinez@nabis.com':'tea_2yzgr'
+'stephany.martinez@nabis.com':'tea_2yzgr',
+'darko.djokic@nabis.com':'tea_3gevf'
 }
 
 
