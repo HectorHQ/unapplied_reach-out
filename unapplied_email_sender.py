@@ -284,7 +284,7 @@ def sameday_paperwork_data(data):
     df
     
     #df = df.loc[df['Create Date']== dt.date.today()].copy()
-    df = df.loc[df['Create Date']== '03/11/2024'].copy()
+    df = df.loc[df['Create Date']== '2024-03-11'].copy()
     # Cleaning data and converting to number
     df['Amount'] = df['Amount'].apply(lambda x: x.replace(',',''))
     df['Amount'] = pd.to_numeric(df['Amount'])
