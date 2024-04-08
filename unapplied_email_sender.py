@@ -387,7 +387,21 @@ def load_dataframe(file):
 
     return df
 
+def send_request(chunk):
+    webhook_url = "https://hook.us1.make.com/sh7wnye6qqc8g6e2onzt0kgs9iz6n8t9"
+    headers = {"Content-Type": "application/json"}
+    response = requests.post(webhook_url, headers=headers, json=chunk)
+    
 
+
+def chunk_json_and_send(json_data, chunk_size=40):
+    json_dict = json.loads(json_data)
+    uuid_list = json_dict['uuid']
+    num_chunks = len(uuid_list) // chunk_size
+    if len(uuid_list) % chunk_size != 0:
+        num_chunks += 1
+    for chunk in np.array_split(uuid_list, num_chunks):
+        send_request({'uuid': chunk})
 
 
 
@@ -438,8 +452,9 @@ if reports:
                 response = requests.post(aging_webhook)
                 webhook = 'https://hook.us1.make.com/nlu4n0q2xvpbrr9fblw9mf4c4d7y8372'
                 response = requests.post(webhook)
-                overdue_webhook = 'https://hook.us1.make.com/sh7wnye6qqc8g6e2onzt0kgs9iz6n8t9'
-                response = requests.post(overdue_webhook,data=data_json,headers={'Content-Type': 'application/json'})
+                #overdue_webhook = 'https://hook.us1.make.com/sh7wnye6qqc8g6e2onzt0kgs9iz6n8t9'
+                #response = requests.post(overdue_webhook,data=data_json,headers={'Content-Type': 'application/json'})
+                chunk_json_and_send(data_json, chunk_size=40)
             
                 if response.status_code == 200:
                       st.success("Make Automation Running")
