@@ -427,7 +427,8 @@ if reports:
         consolidated = st.toggle('Consolidated')
         same_day = st.toggle('Same-day')
         if consolidated:
-            if st.button('Consolidated weekly Emails'):
+            send_to_make_consolidated = st.button('Consolidated weekly Emails')
+            if send_to_make_consolidated:
                 overdue_ar,unapplied_data = paperwork_data(data_uncategorized,data_aging)               
                 aging_webhook = 'https://hook.us1.make.com/spbz18uav6rjjqjcqchjiyg8gradoift'
                 response = requests.post(aging_webhook)
@@ -469,7 +470,8 @@ if reports:
                         
             
         elif same_day:
-            if st.button('Same-Day Emails'):
+            same_day_to_make = st.button('Same-Day Emails')
+            if same_day_to_make:
                 sameday_paperwork_data(data_uncategorized)
                 webhook_sameday = 'https://hook.us1.make.com/tsvqwj3idc30c317uodkze02y3mwf25d'
                 response_sameday = requests.post(webhook_sameday)
