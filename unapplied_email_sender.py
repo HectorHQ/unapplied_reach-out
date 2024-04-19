@@ -437,8 +437,8 @@ if reports:
                 chunks = np.array_split(unapplied_data, np.ceil(len(unapplied_data) / 40))
     
                 for idx,chunk in enumerate(chunks):
-                    chunk_to_jso = chunk.to_json(orient='records')
-                    data_json = {'data':chunk_to_jso}
+                    chunk_to_json = chunk.to_json(orient='records')
+                    data_json = {'data':chunk_to_json}
                     data_json_unapplied = json.dumps(data_json) 
                     wenhook_unapplied = 'https://hook.us1.make.com/nlu4n0q2xvpbrr9fblw9mf4c4d7y8372'
                     response = requests.post(wenhook_unapplied, data=data_json_unapplied, headers={'Content-Type': 'application/json'})
@@ -455,8 +455,8 @@ if reports:
                 chunks_overdue = np.array_split(overdue_ar, np.ceil(len(overdue_ar) / 40))
     
                 for idx,chunk_overdue in enumerate(chunks_overdue):
-                    chunk_overdue_to_jso = chunk_overdue.to_json(orient='records')
-                    data_json_ = {'uuid':chunk_overdue_to_jso}
+                    #chunk_overdue_to_json = chunk_overdue.to_json(orient='records')
+                    data_json_ = {'uuid':chunk_overdue}
                     data_json_overdue = json.dumps(data_json_) 
                     wenhook_overdue = 'https://hook.us1.make.com/sh7wnye6qqc8g6e2onzt0kgs9iz6n8t9'
                     response = requests.post(wenhook_overdue, data=data_json_overdue, headers={'Content-Type': 'application/json'})
