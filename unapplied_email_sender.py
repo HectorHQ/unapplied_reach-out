@@ -215,8 +215,8 @@ def paperwork_data(data,data_aging):
     overdue_ar = data_aging_filter.loc[~data_aging_filter['Retailer UUID'].isin(customer_total_ua['uuid'])].copy()
     overdue_ar['Toggle'] = overdue_ar['Retailer UUID'].map(toggle_dict_overdue)
     overdue_ar = overdue_ar.loc[overdue_ar['Toggle'] == 'ON'].copy()
-    overdue_ar_retailers = overdue_ar['Retailer UUID'].copy()
-    overdue_ar_retailers.drop_duplicates(inplace=True)
+    overdue_ar_retailers = overdue_ar.copy()
+    overdue_ar_retailers.drop_duplicates(subset['Retailer UUID'],inplace=True)
     
     return overdue_ar_retailers,customer_total_ua
 
@@ -455,11 +455,11 @@ if reports:
                 chunks_overdue = np.array_split(overdue_ar, np.ceil(len(overdue_ar) / 40))
     
                 for idx,chunk_overdue in enumerate(chunks_overdue):
-                    chunk_overdue_to_json = json.dumps(chunk_overdue)
-                    data_json_ = {'uuid':chunk_overdue}
-                    #data_json_overdue = json.dumps(data_json_) 
+                    chunk_overdue_to_json = chunk_overdue.to_json(orient='records')
+                    data_json_ = {'uuid':chunk_overdue_to_json}
+                    data_json_overdue = json.dumps(data_json_) 
                     wenhook_overdue = 'https://hook.us1.make.com/sh7wnye6qqc8g6e2onzt0kgs9iz6n8t9'
-                    response = requests.post(wenhook_overdue, data=data_json_, headers={'Content-Type': 'application/json'})
+                    response = requests.post(wenhook_overdue, data=data_json_overdue, headers={'Content-Type': 'application/json'})
                     
                     if response.status_code == 200:
                         st.success(f"Make Automation Running. Chunk # {idx}")
