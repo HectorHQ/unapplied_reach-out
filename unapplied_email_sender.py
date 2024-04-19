@@ -455,11 +455,11 @@ if reports:
                 chunks_overdue = np.array_split(overdue_ar, np.ceil(len(overdue_ar) / 40))
     
                 for idx,chunk_overdue in enumerate(chunks_overdue):
-                    #chunk_overdue_to_json = chunk_overdue.to_json(orient='records')
+                    chunk_overdue_to_json = json.dumps(chunk_overdue)
                     data_json_ = {'uuid':chunk_overdue}
-                    data_json_overdue = json.dumps(data_json_) 
+                    #data_json_overdue = json.dumps(data_json_) 
                     wenhook_overdue = 'https://hook.us1.make.com/sh7wnye6qqc8g6e2onzt0kgs9iz6n8t9'
-                    response = requests.post(wenhook_overdue, data=data_json_overdue, headers={'Content-Type': 'application/json'})
+                    response = requests.post(wenhook_overdue, data=data_json_, headers={'Content-Type': 'application/json'})
                     
                     if response.status_code == 200:
                         st.success(f"Make Automation Running. Chunk # {idx}")
