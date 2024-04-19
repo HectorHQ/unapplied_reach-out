@@ -219,7 +219,7 @@ def paperwork_data(data,data_aging):
     overdue_retailers_list = {'uuid':list(overdue_ar_retailers)}
     data_json = json.dumps(overdue_retailers_list)
 
-    return data_json
+    return data_json,customer_total_ua
 
 
 
