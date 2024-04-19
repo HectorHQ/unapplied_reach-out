@@ -216,10 +216,8 @@ def paperwork_data(data,data_aging):
     overdue_ar['Toggle'] = overdue_ar['Retailer UUID'].map(toggle_dict_overdue)
     overdue_ar = overdue_ar.loc[overdue_ar['Toggle'] == 'ON'].copy()
     overdue_ar_retailers = set(overdue_ar['Retailer UUID'])
-    overdue_retailers_list = {'uuid':list(overdue_ar_retailers)}
-    data_json = json.dumps(overdue_retailers_list)
-
-    return data_json,customer_total_ua
+    
+    return overdue_ar_retailers,customer_total_ua
 
 
 
@@ -354,8 +352,6 @@ def sameday_paperwork_data(data):
     update_gs_byID(st.secrets['gs_ID']['uncategorized'],customer_total_ua,sheet_name='UA_email_reachout_data',range_to_update='A1:N')
 
 
-
-
 def get_dataframe_name(file):
     """
     Generates a name for the DataFrame based on the file name.
@@ -364,6 +360,7 @@ def get_dataframe_name(file):
     file_name = file.name.split(".")[0][:8]  # Get the file name without extension
     df_name = file_name.replace(" ", "_")  # Remove spaces and replace with underscores
     return df_name
+
 
 def load_dataframe(file):
     """
@@ -386,23 +383,6 @@ def load_dataframe(file):
         df = pd.read_excel(file)
 
     return df
-
-def send_request(chunk):
-    webhook_url = "https://hook.us1.make.com/sh7wnye6qqc8g6e2onzt0kgs9iz6n8t9"
-    headers = {"Content-Type": "application/json"}
-    response = requests.post(webhook_url, headers=headers, json=chunk)
-    
-
-
-def chunk_json_and_send(json_data, chunk_size=40):
-    json_dict = json.loads(json_data)
-    uuid_list = json_dict['uuid']
-    num_chunks = len(uuid_list) // chunk_size
-    if len(uuid_list) % chunk_size != 0:
-        num_chunks += 1
-    for chunk in np.array_split(uuid_list, num_chunks):
-        send_request({'uuid': chunk})
-
 
 
 if reports:
@@ -447,19 +427,43 @@ if reports:
         same_day = st.toggle('Same-day')
         if consolidated:
             if st.button('Consolidated weekly Emails'):
-                data_json = paperwork_data(data_uncategorized,data_aging)               
+                overdue_ar,unapplied_data = paperwork_data(data_uncategorized,data_aging)               
                 aging_webhook = 'https://hook.us1.make.com/spbz18uav6rjjqjcqchjiyg8gradoift'
                 response = requests.post(aging_webhook)
-                webhook = 'https://hook.us1.make.com/nlu4n0q2xvpbrr9fblw9mf4c4d7y8372'
-                response = requests.post(webhook)
-                #overdue_webhook = 'https://hook.us1.make.com/sh7wnye6qqc8g6e2onzt0kgs9iz6n8t9'
-                #response = requests.post(overdue_webhook,data=data_json,headers={'Content-Type': 'application/json'})
-                chunk_json_and_send(data_json, chunk_size=40)
-            
-                if response.status_code == 200:
-                      st.success("Make Automation Running")
-                else:
-                      st.error(f"Failed to call webhook. Status Code: {response.status_code}")
+
+                
+                # Splitting the Unapplied DataFrame into chunks of 40 items
+                chunks = np.array_split(unapplied_data, np.ceil(len(unapplied_data) / 40))
+    
+                for idx,chunk in enumerate(chunks):
+                    data_json = {'data':chunk}
+                    data_json_unapplied = json.dumps(data_json) 
+                    wenhook_unapplied = 'https://hook.us1.make.com/nlu4n0q2xvpbrr9fblw9mf4c4d7y8372'
+                    response = requests.post(wenhook_unapplied, data=data_json_unapplied, headers={'Content-Type': 'application/json'})
+                    
+                    if response.status_code == 200:
+                        st.success(f'Make Automation Running')
+                    else:
+                        st.error(f"Failed to call webhook. Status Code: {response.status_code}")
+                        continue
+               
+
+
+                # Splitting the over due AR DataFrame into chunks of 40 items
+                chunks_overdue = np.array_split(overdue_ar, np.ceil(len(overdue_ar) / 40))
+    
+                for chunk_overdue in chunks_overdue:
+                    data_json_ = {'uuid':chunk_overdue}
+                    data_json_overdue = json.dumps(data_json_) 
+                    wenhook_overdue = 'https://hook.us1.make.com/sh7wnye6qqc8g6e2onzt0kgs9iz6n8t9'
+                    response = requests.post(wenhook_overdue, data=data_json_overdue, headers={'Content-Type': 'application/json'})
+                    
+                    if response.status_code == 200:
+                        st.success("Make Automation Running")
+                    else:
+                         st.error(f"Failed to call webhook. Status Code: {response.status_code}")
+                        continue
+                        
             
         elif same_day:
             if st.button('Same-Day Emails'):
