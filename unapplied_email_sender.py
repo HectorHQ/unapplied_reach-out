@@ -216,7 +216,7 @@ def paperwork_data(data,data_aging):
     overdue_ar['Toggle'] = overdue_ar['Retailer UUID'].map(toggle_dict_overdue)
     overdue_ar = overdue_ar.loc[overdue_ar['Toggle'] == 'ON'].copy()
     overdue_ar_retailers = overdue_ar.copy()
-    overdue_ar_retailers.drop_duplicates(subset['Retailer UUID'],inplace=True)
+    overdue_ar_retailers.drop_duplicates(subset=['Retailer UUID'],inplace=True)
     
     return overdue_ar_retailers,customer_total_ua
 
